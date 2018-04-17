@@ -22,8 +22,6 @@ public class SparkTransformSyncer : SparkBehaviour {
 		Extrapolate
 	}
 
-	SparkView sparkView;
-
     public bool syncPosition;
 	public InterpolateOption positionInterpolate;
 	public ExtrapolateOption positionExtrapolate;
