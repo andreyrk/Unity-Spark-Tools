@@ -279,6 +279,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3942ac7eb4912744bc82676ef2c20a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sparkView: {fileID: 0}
   status: Offline.
   userName: User Name
   displayName: Display Name
@@ -309,7 +310,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ownership: 0
   sendRate: 10
-  observedBehaviours:
+  _observedBehaviours:
   - {fileID: 2112071019}
   observeMethod: 0
 --- !u!114 &2112071022

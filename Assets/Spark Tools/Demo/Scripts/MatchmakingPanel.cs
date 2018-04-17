@@ -27,6 +27,7 @@ public class MatchmakingPanel : SparkBehaviour
 		GUILayout.Label ("Players: " + string.Join (", ", playerNames));
 
 		if (GUILayout.Button ("Find match")) {
+            // Your match code goes in this next function
 			SparkManager.instance.FindMatch ("TEST_1", 0);
 		}
 

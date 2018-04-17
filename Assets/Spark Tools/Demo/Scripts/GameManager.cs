@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class GameManager : SparkBehaviour
 {
@@ -9,14 +7,17 @@ public class GameManager : SparkBehaviour
 	private void Start() {
 		SparkManager.instance.InstantiatePrefab (prefab);
 	}
+
+    private void OnGameStart()
+    {
+        Debug.Log("The game has started! This instance is the master player.");
+    }
 		
-	// Connect
 	private void OnPlayerConnect (SparkPeer peer)
 	{
 		Debug.Log ("On player connect.");
 	}
-
-	// Disconnect
+    
 	private void OnPlayerDisconnect (SparkPeer peer)
 	{
 		Debug.Log ("On player disconnect.");

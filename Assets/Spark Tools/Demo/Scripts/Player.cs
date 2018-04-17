@@ -11,7 +11,6 @@ public class Player : SparkBehaviour
 	private void Awake ()
 	{
 		body2D = GetComponent<Rigidbody2D> ();
-		sparkView = GetComponent<SparkView> ();
 	}
 
 	private void FixedUpdate ()

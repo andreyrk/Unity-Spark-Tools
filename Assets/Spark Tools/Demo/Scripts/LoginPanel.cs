@@ -109,7 +109,7 @@ public class LoginPanel : SparkBehaviour
 	}
 
 	private void OnLoginError(AuthenticationResponse response) {
-		Debug.Log ("Login errro.");
+		Debug.Log ("Login error.");
 
 		status = "Login error.";
 	}

@@ -142,6 +142,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 792c118c25b155f4fb953cae80796f24, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sparkView: {fileID: 0}
 --- !u!4 &1029606333
 Transform:
   m_ObjectHideFlags: 0
@@ -168,7 +169,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ownership: 0
   sendRate: 10
-  observedBehaviours:
+  _observedBehaviours:
   - {fileID: 1029606332}
   observeMethod: 0
 --- !u!114 &1029606335

@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Linq;
-using System.Reflection;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.SceneManagement;
 using GameSparks.Api.Messages;
-using GameSparks.Core;
 using GameSparks.Api.Responses;
 using GameSparks.RT;
-using Newtonsoft.Json;
 
 [Serializable]
 [AddComponentMenu("Spark Tools/Spark View")]
@@ -20,11 +13,11 @@ public sealed class SparkView : MonoBehaviour
     public Guid netGuid = Guid.Empty;
 
     public enum Ownership
-	{
-		Fixed
-	}
+    {
+        Fixed
+    }
 
-	public Ownership ownership;
+    public Ownership ownership;
 
     private List<SparkRPC> RPC_Buffer = new List<SparkRPC>();
     private List<SparkRPC> LocalRPC_Buffer = new List<SparkRPC>();
@@ -33,247 +26,300 @@ public sealed class SparkView : MonoBehaviour
     /// Returns true in case this SparkView's peer is the local player.
     /// </summary>
     /// <value><c>true</c> if is local player; otherwise, <c>false</c>.</value>
-    public bool IsLocalPlayer {
-		get {
-			if (sparkPeer.id != 0 && SparkManager.instance.sparkNetwork.PeerId.HasValue) {
-				return sparkPeer.id == (int)SparkManager.instance.sparkNetwork.PeerId;
-			} else {
-				return sparkPeer.id == 0;
-			}
-		}
-	}
+    public bool IsLocalPlayer
+    {
+        get
+        {
+            if (sparkPeer.id != 0 && SparkManager.instance.sparkNetwork.PeerId.HasValue)
+            {
+                return sparkPeer.id == (int)SparkManager.instance.sparkNetwork.PeerId;
+            }
+            else
+            {
+                return sparkPeer.id == 0;
+            }
+        }
+    }
 
-	/// <summary>
-	/// The peer that owns this SparkView.
-	/// </summary>
-	public SparkPeer sparkPeer = new SparkPeer ("None.", "0", 0);
+    public bool IsMasterPlayer
+    {
+        get
+        {
+            return SparkManager.instance.MasterPlayer.id == sparkPeer.id;
+        }
+    }
 
-	public int sendRate = 10;
-	private float sendTime;
+    /// <summary>
+    /// The peer that owns this SparkView.
+    /// </summary>
+    public SparkPeer sparkPeer = new SparkPeer("None.", "0", 0);
 
-	private Dictionary<SparkBehaviour, SparkStream> streams;
-	private SparkMessageInfo info;
+    public int sendRate = 10;
+    private float sendTime;
 
-	public List<SparkBehaviour> observedBehaviours;
+    private Dictionary<SparkBehaviour, SparkStream> streams;
+    private SparkMessageInfo info;
 
-	public GameSparksRT.DeliveryIntent observeMethod;
+    [SerializeField]
+    private List<SparkBehaviour> _observedBehaviours;
+    public List<SparkBehaviour> ObservedBehaviours
+    {
+        get
+        {
+            return _observedBehaviours;
+        }
+        set
+        {
+            _observedBehaviours = value;
+            FixBehaviours();
+        }
+    }
 
-	#region Internal Logic
+    public GameSparksRT.DeliveryIntent observeMethod;
 
-	private void Awake ()
-	{
-		observedBehaviours.RemoveAll (x => x == null);
-        observedBehaviours.ForEach(x => x.sparkView = this);
-	}
+    #region Internal Logic
 
-	private void Start ()
-	{
-		sendTime = sendRate;
+    private void Awake()
+    {
+        FixBehaviours();
+    }
 
-		streams = new Dictionary<SparkBehaviour, SparkStream> ();
-		info = new SparkMessageInfo (sparkPeer);
-	}
+    private void Start()
+    {
+        sendTime = sendRate;
 
-	private void OnEnable ()
-	{
-		if (SparkManager.instance) {
-			SparkManager.instance.Update_SparkViews ();
-		}
-	}
+        streams = new Dictionary<SparkBehaviour, SparkStream>();
+        info = new SparkMessageInfo(sparkPeer);
+    }
 
-	private void OnDisable ()
-	{
-		if (SparkManager.instance) {
-			SparkManager.instance.Update_SparkViews ();
-		}
-	}
+    private void OnEnable()
+    {
+        if (SparkManager.instance)
+        {
+            SparkManager.instance.Update_SparkViews();
+        }
+    }
 
-	private void Update ()
-	{
-		if (!SparkManager.instance.isAvailable) {
-			return;
-		}
+    private void OnDisable()
+    {
+        if (SparkManager.instance)
+        {
+            SparkManager.instance.Update_SparkViews();
+        }
+    }
 
-		sendTime += Time.deltaTime;
+    private void Update()
+    {
+        if (!SparkManager.instance.isAvailable)
+        {
+            return;
+        }
 
-		if (sendTime >= 1f / sendRate) {
-			sendTime = 0;
+        sendTime += Time.deltaTime;
 
-			foreach (SparkBehaviour behaviour in observedBehaviours) {
-				if (behaviour.netGuid == Guid.Empty) {
-					continue;
-				}
+        if (sendTime >= 1f / sendRate)
+        {
+            sendTime = 0;
 
-				SparkStream stream;
-	
-				if (!streams.TryGetValue (behaviour, out stream)) {
-					stream = new SparkStream (behaviour.netGuid, observeMethod, true);
-					streams [behaviour] = stream;
-				}
+            foreach (SparkBehaviour behaviour in ObservedBehaviours)
+            {
+                if (behaviour.netGuid == Guid.Empty)
+                {
+                    continue;
+                }
 
-				SendEvent_OnSerializeSparkView (behaviour, stream, info);
+                SparkStream stream;
 
-				stream.Call("Finish", info);
-			}
-		}
-	}
+                if (!streams.TryGetValue(behaviour, out stream))
+                {
+                    stream = new SparkStream(behaviour.netGuid, observeMethod, true);
+                    streams[behaviour] = stream;
+                }
 
-	#endregion
+                SendEvent_OnSerializeSparkView(behaviour, stream, info);
 
-	#region Player Logic
+                stream.Call("Finish", info);
+            }
+        }
+    }
 
-	/// <summary>
-	/// Sends the event player connect.
-	/// </summary>
-	/// <param name="peers">Peers.</param>
-	public void SendEvent_PlayerConnect (params SparkPeer[] peers)
-	{
-		foreach (SparkBehaviour behaviour in observedBehaviours) {
-			foreach (SparkPeer peer in peers) {
+    private void FixBehaviours()
+    {
+        ObservedBehaviours.RemoveAll(x => x == null);
+        ObservedBehaviours.ForEach(x => x.sparkView = this);
+    }
+
+    #endregion
+
+    #region Player Logic
+
+    /// <summary>
+    /// Sends the event player connect.
+    /// </summary>
+    /// <param name="peers">Peers.</param>
+    public void SendEvent_PlayerConnect(params SparkPeer[] peers)
+    {
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
+        {
+            foreach (SparkPeer peer in peers)
+            {
                 behaviour.Call("OnPlayerConnect", peer);
-			}
-		}
-	}
+            }
+        }
+    }
 
-	/// <summary>
-	/// Sends the event player disconnect.
-	/// </summary>
-	/// <param name="peers">Peers.</param>
-	public void SendEvent_PlayerDisconnect (params SparkPeer[] peers)
-	{
-		foreach (SparkBehaviour behaviour in observedBehaviours) {
-			foreach (SparkPeer peer in peers) {
+    /// <summary>
+    /// Sends the event player disconnect.
+    /// </summary>
+    /// <param name="peers">Peers.</param>
+    public void SendEvent_PlayerDisconnect(params SparkPeer[] peers)
+    {
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
+        {
+            foreach (SparkPeer peer in peers)
+            {
                 behaviour.Call("OnPlayerDisconnect", peer);
-			}
-		}
-	}
+            }
+        }
+    }
 
-	#endregion
+    #endregion
 
-	#region Authentication Logic
+    #region Authentication Logic
 
-	/// <summary>
-	/// Sends the event register success.
-	/// </summary>
-	/// <param name="response">Response.</param>
-	public void SendEvent_RegisterSuccess (RegistrationResponse response)
-	{
-		foreach (SparkBehaviour behaviour in observedBehaviours) {
+    /// <summary>
+    /// Sends the event register success.
+    /// </summary>
+    /// <param name="response">Response.</param>
+    public void SendEvent_RegisterSuccess(RegistrationResponse response)
+    {
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
+        {
             behaviour.Call("OnRegisterSuccess", response);
-		}
-	}
+        }
+    }
 
-	/// <summary>
-	/// Sends the event register error.
-	/// </summary>
-	/// <param name="response">Response.</param>
-	public void SendEvent_RegisterError (RegistrationResponse response)
-	{
-		foreach (SparkBehaviour behaviour in observedBehaviours) {
+    /// <summary>
+    /// Sends the event register error.
+    /// </summary>
+    /// <param name="response">Response.</param>
+    public void SendEvent_RegisterError(RegistrationResponse response)
+    {
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
+        {
             behaviour.Call("OnRegisterError", response);
-		}
-	}
+        }
+    }
 
-	/// <summary>
-	/// Sends the event login success.
-	/// </summary>
-	/// <param name="response">Response.</param>
-	public void SendEvent_LoginSuccess (AuthenticationResponse response)
-	{
-		foreach (SparkBehaviour behaviour in observedBehaviours) {
+    /// <summary>
+    /// Sends the event login success.
+    /// </summary>
+    /// <param name="response">Response.</param>
+    public void SendEvent_LoginSuccess(AuthenticationResponse response)
+    {
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
+        {
             behaviour.Call("OnLoginSuccess", response);
-		}
-	}
+        }
+    }
 
-	/// <summary>
-	/// Sends the event login error.
-	/// </summary>
-	/// <param name="response">Response.</param>
-	public void SendEvent_LoginError (AuthenticationResponse response)
-	{
-		foreach (SparkBehaviour behaviour in observedBehaviours) {
+    /// <summary>
+    /// Sends the event login error.
+    /// </summary>
+    /// <param name="response">Response.</param>
+    public void SendEvent_LoginError(AuthenticationResponse response)
+    {
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
+        {
             behaviour.Call("OnLoginError", response);
-		}
-	}
+        }
+    }
 
-	#endregion
+    #endregion
 
-	#region Matchmaking Logic
+    #region Matchmaking Logic
 
-	/// <summary>
-	/// Sends the event try match success.
-	/// </summary>
-	/// <param name="response">Response.</param>
-	public void SendEvent_TryMatchSuccess (MatchmakingResponse response)
-	{
-		foreach (SparkBehaviour behaviour in observedBehaviours) {
+    /// <summary>
+    /// Sends the event try match success.
+    /// </summary>
+    /// <param name="response">Response.</param>
+    public void SendEvent_TryMatchSuccess(MatchmakingResponse response)
+    {
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
+        {
             behaviour.Call("OnTryMatchSuccess", response);
-		}
-	}
+        }
+    }
 
-	/// <summary>
-	/// Sends the event try match error.
-	/// </summary>
-	/// <param name="response">Response.</param>
-	public void SendEvent_TryMatchError (MatchmakingResponse response)
-	{
-		foreach (SparkBehaviour behaviour in observedBehaviours) {
+    /// <summary>
+    /// Sends the event try match error.
+    /// </summary>
+    /// <param name="response">Response.</param>
+    public void SendEvent_TryMatchError(MatchmakingResponse response)
+    {
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
+        {
             behaviour.Call("OnTryMatchError", response);
-		}
-	}
+        }
+    }
 
-	/// <summary>
-	/// Sends the event match found.
-	/// </summary>
-	/// <param name="message">Message.</param>
-	public void SendEvent_MatchFound (MatchFoundMessage message)
-	{
-		foreach (SparkBehaviour behaviour in observedBehaviours) {
+    /// <summary>
+    /// Sends the event match found.
+    /// </summary>
+    /// <param name="message">Message.</param>
+    public void SendEvent_MatchFound(MatchFoundMessage message)
+    {
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
+        {
             behaviour.Call("OnMatchFound", message);
-		}
-	}
+        }
+    }
 
-	/// <summary>
-	/// Sends the event match not found.
-	/// </summary>
-	/// <param name="message">Message.</param>
-	public void SendEvent_MatchNotFound (MatchNotFoundMessage message)
-	{
-		foreach (SparkBehaviour behaviour in observedBehaviours) {
+    /// <summary>
+    /// Sends the event match not found.
+    /// </summary>
+    /// <param name="message">Message.</param>
+    public void SendEvent_MatchNotFound(MatchNotFoundMessage message)
+    {
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
+        {
             behaviour.Call("OnMatchNotFound", message);
-		}
-	}
+        }
+    }
 
-	/// <summary>
-	/// Sends the event match updated.
-	/// </summary>
-	/// <param name="message">Message.</param>
-	public void SendEvent_MatchUpdated (MatchUpdatedMessage message)
-	{
-		foreach (SparkBehaviour behaviour in observedBehaviours) {
+    /// <summary>
+    /// Sends the event match updated.
+    /// </summary>
+    /// <param name="message">Message.</param>
+    public void SendEvent_MatchUpdated(MatchUpdatedMessage message)
+    {
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
+        {
             behaviour.Call("OnMatchUpdated", message);
-		}
-	}
+        }
+    }
 
-	/// <summary>
-	/// Sends the event match start.
-	/// </summary>
-	public void SendEvent_MatchStart ()
-	{
-		foreach (SparkBehaviour behaviour in observedBehaviours) {
+    /// <summary>
+    /// Sends the event match start.
+    /// </summary>
+    public void SendEvent_MatchStart()
+    {
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
+        {
             behaviour.Call("OnMatchStart");
-		}
-	}
+        }
+    }
 
-	/// <summary>
-	/// Sends the event match end.
-	/// </summary>
-	public void SendEvent_MatchEnd ()
-	{
-		foreach (SparkBehaviour behaviour in observedBehaviours) {
+    /// <summary>
+    /// Sends the event match end.
+    /// </summary>
+    public void SendEvent_MatchEnd()
+    {
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
+        {
             behaviour.Call("OnMatchEnd");
-		}
-	}
+        }
+    }
 
     #endregion
 
@@ -371,7 +417,7 @@ public sealed class SparkView : MonoBehaviour
     {
         foreach (SparkRPC rpc in RPC_Buffer)
         {
-            foreach (SparkBehaviour behaviour in observedBehaviours)
+            foreach (SparkBehaviour behaviour in ObservedBehaviours)
             {
                 behaviour.RPC(rpc.MethodName, rpc.ReceiverIds, false, rpc.Parameters);
             }
@@ -391,11 +437,22 @@ public sealed class SparkView : MonoBehaviour
     #region Data Logic
 
     /// <summary>
+    /// Sends the event on game start.
+    /// </summary>
+    public void SendEvent_GameStart()
+    {
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
+        {
+            behaviour.Call("OnGameStart");
+        }
+    }
+
+    /// <summary>
     /// Sends the event on instantiate.
     /// </summary>
     public void SendEvent_OnInstantiate()
     {
-        foreach (SparkBehaviour behaviour in observedBehaviours)
+        foreach (SparkBehaviour behaviour in ObservedBehaviours)
         {
             behaviour.Call("OnInstantiate");
         }
@@ -426,7 +483,7 @@ public sealed class SparkView : MonoBehaviour
                 SparkStream stream = SparkExtensions.Deserialize<SparkStream>(packet.Data.GetString(1));
                 SparkMessageInfo info = SparkExtensions.Deserialize<SparkMessageInfo>(packet.Data.GetString(2));
 
-                foreach (SparkBehaviour behaviour in observedBehaviours)
+                foreach (SparkBehaviour behaviour in ObservedBehaviours)
                 {
                     if (stream.NetGuid == behaviour.netGuid)
                     {
@@ -440,8 +497,8 @@ public sealed class SparkView : MonoBehaviour
                 // RPC handling
 
                 SparkRPC rpc = SparkExtensions.Deserialize<SparkRPC>(packet.Data.GetString(1));
-                
-                foreach (SparkBehaviour behaviour in observedBehaviours)
+
+                foreach (SparkBehaviour behaviour in ObservedBehaviours)
                 {
                     if (behaviour.netGuid == rpc.NetGuid)
                     {
@@ -462,5 +519,5 @@ public sealed class SparkView : MonoBehaviour
         }
     }
 
-	#endregion
+    #endregion
 }

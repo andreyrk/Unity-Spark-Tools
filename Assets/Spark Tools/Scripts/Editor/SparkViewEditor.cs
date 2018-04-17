@@ -15,7 +15,7 @@ public class SparkViewEditor : Editor
     {
         targetScript = (SparkView)target;
 
-        observedBehaviours = new ReorderableList(serializedObject, serializedObject.FindProperty("observedBehaviours"), true, true, true, true)
+        observedBehaviours = new ReorderableList(serializedObject, serializedObject.FindProperty("_observedBehaviours"), true, true, true, true)
         {
             drawHeaderCallback = rect =>
             {
@@ -31,18 +31,18 @@ public class SparkViewEditor : Editor
         };
     }
 
-	public override void OnInspectorGUI ()
-	{
-		EditorGUILayout.Space ();
+    public override void OnInspectorGUI()
+    {
+        EditorGUILayout.Space();
 
-		targetScript.observeMethod = (GameSparksRT.DeliveryIntent)EditorGUILayout.EnumPopup ("Observe Method", targetScript.observeMethod);
-		targetScript.sendRate = EditorGUILayout.IntSlider ("Send rate", targetScript.sendRate, 1, 100);
+        targetScript.observeMethod = (GameSparksRT.DeliveryIntent)EditorGUILayout.EnumPopup("Observe Method", targetScript.observeMethod);
+        targetScript.sendRate = EditorGUILayout.IntSlider("Send rate", targetScript.sendRate, 1, 100);
 
-		EditorGUILayout.Space ();
+        EditorGUILayout.Space();
 
-		serializedObject.Update ();
-		observedBehaviours.DoLayoutList ();
-		serializedObject.ApplyModifiedProperties ();
-	}
+        serializedObject.Update();
+        observedBehaviours.DoLayoutList();
+        serializedObject.ApplyModifiedProperties();
+    }
 
 }

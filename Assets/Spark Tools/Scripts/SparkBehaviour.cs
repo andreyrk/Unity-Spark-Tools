@@ -101,6 +101,11 @@ public class SparkBehaviour : MonoBehaviour
 
 	#region Data Events
 
+    private void OnGameStart()
+    {
+
+    }
+
 	private void OnInstantiate ()
 	{
 		

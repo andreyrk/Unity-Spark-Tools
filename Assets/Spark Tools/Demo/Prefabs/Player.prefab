@@ -76,6 +76,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40767712e9ab0f94a8e65e1dc04c4c82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sparkView: {fileID: 0}
+  syncer: 0
   syncPosition: 1
   positionInterpolate: 1
   positionExtrapolate: 0
@@ -100,7 +102,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ownership: 0
   sendRate: 10
-  observedBehaviours:
+  _observedBehaviours:
   - {fileID: 114692070284023306}
   - {fileID: 114126318460189934}
   observeMethod: 0
@@ -115,6 +117,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f4e989a6758db64a84e99de12d51e44, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sparkView: {fileID: 0}
   speed: 3
 --- !u!114 &114958623689931418
 MonoBehaviour:

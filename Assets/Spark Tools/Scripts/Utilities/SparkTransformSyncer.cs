@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class SparkTransformSyncer : SparkBehaviour {
 
+    public enum Syncer
+    {
+        LocalPlayer,
+        MasterPlayer
+    }
+
 	public enum Mode
 	{
 		Transform,
@@ -21,6 +27,8 @@ public class SparkTransformSyncer : SparkBehaviour {
 		None,
 		Extrapolate
 	}
+
+    public Syncer syncer;
 
     public bool syncPosition;
 	public InterpolateOption positionInterpolate;
@@ -58,7 +66,7 @@ public class SparkTransformSyncer : SparkBehaviour {
 
     private void Awake ()
 	{
-		sparkView = GetComponent<SparkView> ();
+
 	}
 
 	private void Start() {
@@ -73,7 +81,7 @@ public class SparkTransformSyncer : SparkBehaviour {
 	}
 
     private void Update() {
-        if (sparkView.IsLocalPlayer)
+        if ((sparkView.IsLocalPlayer && syncer == Syncer.LocalPlayer) || (SparkManager.instance.IsMasterPlayer && syncer == Syncer.MasterPlayer))
         {
             return;
         }
@@ -143,7 +151,7 @@ public class SparkTransformSyncer : SparkBehaviour {
 	{
         if (stream.IsWriting)
         {
-            if (sparkView.IsLocalPlayer)
+            if ((sparkView.IsLocalPlayer && syncer == Syncer.LocalPlayer) || (SparkManager.instance.IsMasterPlayer && syncer == Syncer.MasterPlayer))
             {
                 stream.SendNext(transform.position);
                 stream.SendNext(transform.localScale);

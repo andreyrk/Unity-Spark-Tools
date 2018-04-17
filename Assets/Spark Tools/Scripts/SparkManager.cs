@@ -144,25 +144,33 @@ public sealed class SparkManager : MonoBehaviour
 		}
 	}
 
-	#region Scene Events
+    #region Scene Events
 
-	/// <summary>
-	/// Raises the scene loaded event.
-	/// </summary>
-	/// <param name="scene">Scene.</param>
-	/// <param name="mode">Mode.</param>
-	private void OnSceneLoaded (Scene scene, LoadSceneMode mode)
-	{
-		Update_SparkViews ();
+    /// <summary>
+    /// Raises the scene loaded event.
+    /// </summary>
+    /// <param name="scene">Scene.</param>
+    /// <param name="mode">Mode.</param>
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        Update_SparkViews();
 
-		if (IsReady) {
-			foreach (SparkView view in sparkViews) {
-				if (view.IsLocalPlayer) {
-					view.SendEvent_PlayerConnect (sparkMatch.peerList.ToArray ());
-				}
-			}
-		}
-	}
+        if (IsReady)
+        {
+            foreach (SparkView view in sparkViews)
+            {
+                if (IsMasterPlayer)
+                {
+                    view.SendEvent_GameStart();
+                }
+
+                if (view.IsLocalPlayer)
+                {
+                    view.SendEvent_PlayerConnect(sparkMatch.peerList.ToArray());
+                }
+            }
+        }
+    }
 
 	/// <summary>
 	/// Raises the scene unloaded event.
@@ -402,7 +410,7 @@ public sealed class SparkManager : MonoBehaviour
 
 		foreach (MatchUpdatedMessage._Participant participant in message.Participants) {
 
-			SparkPeer peer = new SparkPeer (participant.DisplayName, participant.Id, (int)participant.PeerId);
+			SparkPeer peer = new SparkPeer (participant.DisplayName, participant.Id, participant.PeerId.Value);
 
 			if (message.AddedPlayers.Contains (participant.Id)) {
 				sparkMatch.peerList.Add (peer);
@@ -633,7 +641,7 @@ public sealed class SparkManager : MonoBehaviour
                 {
                     if (rpc.ReceiverIds.Contains(view.sparkPeer.id))
                     {
-                        foreach (SparkBehaviour behaviour in view.observedBehaviours)
+                        foreach (SparkBehaviour behaviour in view.ObservedBehaviours)
                         {
                             behaviour.Call(rpc.MethodName, rpc.Parameters);
                         }

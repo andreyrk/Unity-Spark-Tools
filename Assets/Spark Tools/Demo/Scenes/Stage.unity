@@ -142,6 +142,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78dfaf5db3fe7d441964b455be88e80d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sparkView: {fileID: 0}
   prefab: {fileID: 1518158472006042, guid: f7730257975bb2f40887cba10e21fda8, type: 2}
 --- !u!4 &219066705
 Transform:
@@ -169,7 +170,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ownership: 0
   sendRate: 10
-  observedBehaviours:
+  _observedBehaviours:
   - {fileID: 219066704}
   observeMethod: 0
 --- !u!114 &219066707
