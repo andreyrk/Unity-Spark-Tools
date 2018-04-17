@@ -12,8 +12,11 @@ using GameSparks.RT;
 [RequireComponent(typeof(SparkIdentity))]
 public class SparkBehaviour : MonoBehaviour
 {
+    [HideInInspector]
     public SparkView sparkView;
-	public Guid netGuid = Guid.Empty;
+
+    [HideInInspector]
+    public Guid netGuid = Guid.Empty;
 
 	#region Player Events
 

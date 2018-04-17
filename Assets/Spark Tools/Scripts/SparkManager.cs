@@ -235,6 +235,9 @@ public sealed class SparkManager : MonoBehaviour
             {
                 view.Call("LocalRPC", "Remove_LocalRPC_Buffer", SparkTargets.Others, false, peer);
                 view.Call("LocalRPC", "Remove_RPC_Buffer", SparkTargets.Others, false, peer);
+
+                view.Call("Remove_LocalRPC_Buffer", SparkTargets.Others, false, peer);
+                view.Call("Remove_RPC_Buffer", SparkTargets.Others, false, peer);
             }
         }
     }
@@ -444,7 +447,7 @@ public sealed class SparkManager : MonoBehaviour
 	/// <param name="targetPlayer">Target player.</param>
 	/// <param name="isBuffered">If set to <c>true</c> is buffered.</param>
 	/// <param name="parameters">Parameters.</param>
-	private void LocalRPC (string methodName, SparkTargets targets, bool isBuffered, params object[] parameters)
+	private void LocalRPC(string methodName, SparkTargets targets, bool isBuffered, params object[] parameters)
 	{
 		LocalRPC (methodName, GetReceivers (targets), isBuffered, parameters);
 	}
@@ -475,7 +478,7 @@ public sealed class SparkManager : MonoBehaviour
 			
 		if (isBuffered) {
         	LocalRPC_Buffer.Add (rpc);
-			LocalRPC ("Add_LocalRPC_Buffer", SparkTargets.Others, false, rpc);
+            LocalRPC("Add_LocalRPC_Buffer", SparkTargets.Others, false, rpc);
 		}
 	}
 
@@ -562,7 +565,7 @@ public sealed class SparkManager : MonoBehaviour
         }
 
         GameObject instantiate = NetworkInstantiate (identity.uniqueId, isBuffered, position, rotation, sender, guids.ToArray ());
-		LocalRPC ("NetworkInstantiate", SparkTargets.Others, isBuffered, identity.uniqueId, isBuffered, position, rotation, sender, guids.ToArray ());
+        LocalRPC("NetworkInstantiate", SparkTargets.Others, isBuffered, identity.uniqueId, isBuffered, position, rotation, sender, guids.ToArray ());
 
 		return instantiate;
 	}

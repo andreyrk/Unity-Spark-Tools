@@ -14,7 +14,7 @@ public static class SparkExtensions
 {
 	public static object Call (this object o, string methodName, params object[] parameters)
 	{
-		MethodInfo method = o.GetType ().GetMethod (methodName, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance);
+        MethodInfo method = o.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance, null, parameters.Select(x => x.GetType()).ToArray(), null);
 
 		if (method != null) {
 			return method.Invoke (o, parameters);
