@@ -5,7 +5,6 @@ using UnityEngine;
 public class Player : SparkBehaviour
 {
 	Rigidbody2D body2D;
-	SparkView sparkView;
 
 	public float speed;
 

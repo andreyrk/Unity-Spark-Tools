@@ -63,6 +63,7 @@ public sealed class SparkView : MonoBehaviour
 	private void Awake ()
 	{
 		observedBehaviours.RemoveAll (x => x == null);
+        observedBehaviours.ForEach(x => x.sparkView = this);
 	}
 
 	private void Start ()

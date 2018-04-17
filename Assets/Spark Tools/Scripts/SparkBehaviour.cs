@@ -12,6 +12,7 @@ using GameSparks.RT;
 [RequireComponent(typeof(SparkIdentity))]
 public class SparkBehaviour : MonoBehaviour
 {
+    public SparkView sparkView;
 	public Guid netGuid = Guid.Empty;
 
 	#region Player Events
@@ -126,7 +127,10 @@ public class SparkBehaviour : MonoBehaviour
 
     public void RPC(string methodName, int[] receiverIds, bool isBuffered, params object[] parameters)
     {
-        GetComponent<SparkView>().Call("SendEvent_RPC", netGuid, SparkManager.OpCode.SparkView_RPC, methodName, receiverIds, isBuffered, false, parameters);
+        if (sparkView)
+        {
+            sparkView.Call("SendEvent_RPC", netGuid, SparkManager.OpCode.SparkView_RPC, methodName, receiverIds, isBuffered, false, parameters);
+        }
     }
 
     #endregion
