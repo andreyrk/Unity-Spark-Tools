@@ -43,6 +43,10 @@ public class SparkViewEditor : Editor
         serializedObject.Update();
         observedBehaviours.DoLayoutList();
         serializedObject.ApplyModifiedProperties();
-    }
 
+        if (GUI.changed)
+        {
+            SparkEditorExtensions.SetObjectDirty(targetScript);
+        }
+    }
 }
