@@ -316,7 +316,7 @@ public sealed class SparkStream
 
         sendCount = 0;
         previousVariables = networkVariables;
-        networkVariables = new Dictionary<int, object>();
+        networkVariables.Clear();
 
         IsWriting = true;
     }

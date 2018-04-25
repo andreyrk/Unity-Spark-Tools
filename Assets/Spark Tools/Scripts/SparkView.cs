@@ -57,7 +57,7 @@ public sealed class SparkView : MonoBehaviour
     public int sendRate = 10;
     private float sendTime;
 
-    private Dictionary<SparkBehaviour, SparkStream> streams;
+    private Dictionary<Guid, SparkStream> streams;
     private SparkMessageInfo info;
 
     [SerializeField]
@@ -88,7 +88,7 @@ public sealed class SparkView : MonoBehaviour
     {
         sendTime = sendRate;
 
-        streams = new Dictionary<SparkBehaviour, SparkStream>();
+        streams = new Dictionary<Guid, SparkStream>();
         info = new SparkMessageInfo(sparkPeer);
     }
 
@@ -130,10 +130,10 @@ public sealed class SparkView : MonoBehaviour
 
                 SparkStream stream;
 
-                if (!streams.TryGetValue(behaviour, out stream))
+                if (!streams.TryGetValue(behaviour.netGuid, out stream))
                 {
                     stream = new SparkStream(behaviour.netGuid, observeMethod, true);
-                    streams[behaviour] = stream;
+                    streams[behaviour.netGuid] = stream;
                 }
 
                 SendEvent_OnSerializeSparkView(behaviour, stream, info);
